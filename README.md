@@ -16,15 +16,47 @@
 
 ## 开发
 
+### ⚠️ 代理设置（重要）
+
+本机系统代理 `https_proxy=127.0.0.1:7890` 通常处于关闭状态，若不覆盖会导致 cargo / npm / API 请求全部卡死。
+**所有 cargo 与 npm 命令都必须关闭代理**：国内直连 crates.io sparse index、npmmirror、`api.stepfun.com` 均可达。
+
+在每次命令前显式覆盖环境变量（Git Bash / WSL 语法）：
+
 ```bash
-# 安装前端依赖
-npm install
+HTTP_PROXY= HTTPS_PROXY= NO_PROXY="*" <你的命令>
+```
 
-# 开发模式（同时启动 vite 和 tauri）
-npm run tauri dev
+### 首次安装
 
+```bash
+# 安装前端依赖（同样需要关闭代理）
+HTTP_PROXY= HTTPS_PROXY= NO_PROXY="*" npm install
+```
+
+### 开发模式
+
+```bash
+# 启动 vite 前端 (localhost:1420) + tauri 后端（首次 cargo 编译约 40-60s）
+HTTP_PROXY= HTTPS_PROXY= NO_PROXY="*" npm run tauri dev
+```
+
+启动成功标志：
+- Vite 就绪：`http://localhost:1420/`
+- cargo 输出 `Finished dev profile ...` 并启动 `target\debug\realtime-subtitle-tool.exe`
+- 日志出现 `sqlite pool ready at ...subtitle.db`
+- 字幕悬浮窗与设置面板自动弹出（dev 模式字幕窗自动开 DevTools）
+
+> **HMR**：前端改动由 Vite 热更新，无需重启；Rust 改动会自动触发 cargo 重编译并重启 exe。
+>
+> **exe 被占用**：若上次进程未正常退出导致 `target\debug\realtime-subtitle-tool.exe` 被锁，
+> 先用任务管理器结束 `realtime-subtitle-tool.exe` 进程再重新启动。
+
+### 构建发布包
+
+```bash
 # 构建 Windows 安装包 (MSI / NSIS)
-npm run tauri build
+HTTP_PROXY= HTTPS_PROXY= NO_PROXY="*" npm run tauri build
 ```
 
 ## 使用
