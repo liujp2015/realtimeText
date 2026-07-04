@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0",
+  "productName": "RealtimeSubtitleTool",
+  "version": "0.1.0",
+  "identifier": "com.realtimesubtitle.tool",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "subtitle",
+        "title": "字幕",
+        "url": "subtitle.html",
+        "width": 800,
+        "height": 120,
+        "x": 240,
+        "y": 60,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": false
+      },
+      {
+        "label": "dashboard",
+        "title": "实时字幕工具",
+        "url": "dashboard.html",
+        "width": 960,
+        "height": 640,
+        "resizable": true,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

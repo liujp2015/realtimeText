@@ -1,0 +1,36 @@
+# Rust
+target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.prof*
+Cargo.lock
+
+# Node
+node_modules/
+dist/
+build/
+*.log
+.env*
+.npm/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Local data (SQLite DB, logs)
+*.db
+*.db-journal
+*.sqlite
