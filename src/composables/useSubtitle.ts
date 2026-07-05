@@ -15,15 +15,11 @@ export function useSubtitle() {
         if (u.state === "partial") {
           draft.value = u.text;
         } else if (u.state === "final") {
-          if (draft.value) {
-            finals.value.push({
-              state: "final",
-              text: draft.value,
-              start_ts: u.start_ts,
-              end_ts: u.end_ts,
-            });
+          // 后端 final 事件已携带最终文本（空文本时由 last_text 兜底），
+          // 只 push 一次，避免与 draft 重复显示两条字幕。
+          if (u.text) {
+            finals.value.push(u);
           }
-          finals.value.push(u);
           draft.value = "";
           if (finals.value.length > 50) {
             finals.value.splice(0, finals.value.length - 50);
