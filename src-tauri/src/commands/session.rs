@@ -2,7 +2,7 @@ use serde::Serialize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, State};
 
-use crate::audio::capture::start_loopback_thread;
+use crate::audio::start_audio_source;
 use crate::audio::ring;
 use crate::asr::pipeline;
 use crate::db::repository::{
@@ -47,7 +47,7 @@ pub async fn session_start(
     }
 
     let (producer, consumer) = ring::new();
-    let (capture_thread, capture_stop, info_rx) = start_loopback_thread(producer);
+    let (capture_thread, capture_stop, info_rx) = start_audio_source(producer);
     let capture_info = match info_rx.recv() {
         Ok(Ok(info)) => info,
         Ok(Err(e)) => return Err(e),
@@ -90,13 +90,16 @@ pub async fn session_start(
         },
     );
 
-    if let Some(win) = app.get_webview_window("subtitle") {
-        let _ = win.show();
-        // Dev: keep cursor events on so DevTools (right-click) works.
-        // Production: set_ignore_cursor_events(true).
-        let _ = win.set_ignore_cursor_events(false);
-        if cfg!(debug_assertions) {
-            let _ = win.open_devtools();
+    #[cfg(not(target_os = "android"))]
+    {
+        if let Some(win) = app.get_webview_window("subtitle") {
+            let _ = win.show();
+            // Dev: keep cursor events on so DevTools (right-click) works.
+            // Production: set_ignore_cursor_events(true).
+            let _ = win.set_ignore_cursor_events(false);
+            if cfg!(debug_assertions) {
+                let _ = win.open_devtools();
+            }
         }
     }
 
@@ -127,8 +130,11 @@ pub async fn session_stop(app: AppHandle, state: State<'_, AppState>) -> Result<
             .await
             .map_err(|e| e.to_string())?;
     }
-    if let Some(win) = app.get_webview_window("subtitle") {
-        let _ = win.hide();
+    #[cfg(not(target_os = "android"))]
+    {
+        if let Some(win) = app.get_webview_window("subtitle") {
+            let _ = win.hide();
+        }
     }
     Ok(())
 }

@@ -1,0 +1,11 @@
+[package]
+name = "spike-ort-android"
+version = "0.1.0"
+edition = "2021"
+
+# 验证 ort 2.0.0-rc.12 的 load-dynamic feature 能为 aarch64-linux-android 交叉编译。
+# load-dynamic: 编译时不链接 onnxruntime,运行时 dlopen libonnxruntime.so(放 jniLibs)。
+# api-24: 必须显式启用(对应 onnxruntime 1.24 绑定),否则 ort-sys 用低版本绑定,
+#         OrtApi 缺 SessionOptionsAppendExecutionProvider_VitisAI 字段,vitis.rs 编译失败。
+[dependencies]
+ort = { version = "2.0.0-rc.12", default-features = false, features = ["load-dynamic", "api-24"] }

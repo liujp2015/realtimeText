@@ -38,10 +38,13 @@ pub fn run() {
                 handle.manage(state);
             });
 
-            let monitor_handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                device_monitor(monitor_handle).await;
-            });
+            #[cfg(not(target_os = "android"))]
+            {
+                let monitor_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    device_monitor(monitor_handle).await;
+                });
+            }
 
             Ok(())
         })
@@ -81,6 +84,7 @@ async fn load_config(pool: &sqlx::SqlitePool) -> anyhow::Result<AppConfig> {
     })
 }
 
+#[cfg(not(target_os = "android"))]
 async fn device_monitor(app: tauri::AppHandle) {
     use crate::audio::capture::current_default_output_name;
     use std::time::Duration;

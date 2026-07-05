@@ -63,7 +63,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 20px;
+  /* Android edge-to-edge 下 WebView 会画到状态栏底下，顶部留出安全区把内容往下推。 */
+  padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
   background: #1e1e1e;
   color: #fff;
 }
@@ -105,7 +106,7 @@ onMounted(async () => {
 main {
   flex: 1;
   overflow: auto;
-  padding: 20px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   background: #f5f5f5;
 }
 </style>

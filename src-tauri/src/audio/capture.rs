@@ -5,15 +5,10 @@ use rtrb::Producer;
 use std::sync::mpsc;
 use std::thread::JoinHandle;
 
+use super::CaptureInfo;
+
 pub struct CaptureHandle {
     pub stream: Stream,
-    pub device_name: String,
-    pub sample_rate: u32,
-    pub channels: u16,
-}
-
-#[derive(Debug, Clone)]
-pub struct CaptureInfo {
     pub device_name: String,
     pub sample_rate: u32,
     pub channels: u16,
