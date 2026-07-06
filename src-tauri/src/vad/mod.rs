@@ -2,4 +2,4 @@ pub mod silero;
 pub mod state;
 
 pub use silero::SileroVad;
-pub use state::{Utterance, VadState};
+pub use state::{VadEvent, VadState};

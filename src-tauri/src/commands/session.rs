@@ -38,13 +38,29 @@ pub async fn session_start(
         }
     }
 
-    let api_key = {
+    let asr_cfg = {
         let cfg = state.config.lock();
-        cfg.api_key.clone()
+        match cfg.provider {
+            crate::config::AsrProvider::Stepfun => {
+                if cfg.api_key.is_empty() {
+                    return Err("ApiKeyMissing".into());
+                }
+                crate::asr::provider::AsrConfig::Stepfun {
+                    api_key: cfg.api_key.clone(),
+                }
+            }
+            crate::config::AsrProvider::Volc => {
+                if cfg.volc_api_key.is_empty() {
+                    return Err("VolcApiKeyMissing".into());
+                }
+                crate::asr::provider::AsrConfig::Volc {
+                    api_key: cfg.volc_api_key.clone(),
+                    resource_id: cfg.volc_resource_id.clone(),
+                    url: cfg.volc_url.clone(),
+                }
+            }
+        }
     };
-    if api_key.is_empty() {
-        return Err("ApiKeyMissing".into());
-    }
 
     let (producer, consumer) = ring::new();
     let (capture_thread, capture_stop, info_rx) = start_audio_source(producer);
@@ -65,7 +81,7 @@ pub async fn session_start(
         app.clone(),
         consumer,
         capture_info.sample_rate as usize,
-        api_key,
+        asr_cfg,
         guid.clone(),
     )
     .map_err(|e| e.to_string())?;

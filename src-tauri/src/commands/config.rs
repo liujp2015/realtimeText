@@ -1,7 +1,7 @@
 use serde_json::Value;
 use tauri::State;
 
-use crate::config::{Appearance, WindowRect};
+use crate::config::{Appearance, AsrProvider, WindowRect};
 use crate::db::repository::{get_config_value, set_config_value};
 use crate::state::AppState;
 
@@ -58,6 +58,21 @@ pub async fn config_set(key: String, value: Value, state: State<'_, AppState>) -
             "window" => {
                 if let Ok(w) = serde_json::from_value::<WindowRect>(value.clone()) {
                     cfg.window = Some(w);
+                }
+            }
+            "provider" => {
+                if let Ok(p) = serde_json::from_value::<AsrProvider>(value.clone()) {
+                    cfg.provider = p;
+                }
+            }
+            "volc_api_key" | "volc_resource_id" | "volc_url" => {
+                if let Some(s) = value.as_str() {
+                    match key.as_str() {
+                        "volc_api_key" => cfg.volc_api_key = s.to_string(),
+                        "volc_resource_id" => cfg.volc_resource_id = s.to_string(),
+                        "volc_url" => cfg.volc_url = s.to_string(),
+                        _ => {}
+                    }
                 }
             }
             _ => {}

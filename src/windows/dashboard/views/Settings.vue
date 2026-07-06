@@ -2,9 +2,19 @@
 import { onMounted, ref } from "vue";
 import { useSettingsStore } from "@/stores/settings";
 import type { Appearance } from "@/lib/tauri";
+import {
+  DEFAULT_VOLC_RESOURCE_ID,
+  DEFAULT_VOLC_URL,
+  type AsrProvider,
+} from "@/stores/settings";
 
 const settings = useSettingsStore();
 const apiKeyInput = ref("");
+const provider = ref<AsrProvider>("stepfun");
+const volcApiKeyInput = ref("");
+const volcResourceIdInput = ref(DEFAULT_VOLC_RESOURCE_ID);
+const volcUrlInput = ref(DEFAULT_VOLC_URL);
+const showAdvanced = ref(false);
 const appearance = ref<Appearance>({
   font_family: "Microsoft YaHei",
   font_size: 24,
@@ -16,11 +26,29 @@ const saved = ref(false);
 onMounted(async () => {
   await settings.load();
   apiKeyInput.value = settings.apiKey;
+  provider.value = settings.provider;
+  volcApiKeyInput.value = settings.volcApiKey;
+  volcResourceIdInput.value = settings.volcResourceId;
+  volcUrlInput.value = settings.volcUrl;
   appearance.value = { ...settings.appearance };
 });
 
 async function saveApiKey() {
   await settings.saveApiKey(apiKeyInput.value.trim());
+  flashSaved();
+}
+
+async function saveProvider() {
+  await settings.saveProvider(provider.value);
+  flashSaved();
+}
+
+async function saveVolcConfig() {
+  await settings.saveVolcApiKey(volcApiKeyInput.value.trim());
+  await settings.saveVolcResourceId(
+    volcResourceIdInput.value.trim() || DEFAULT_VOLC_RESOURCE_ID
+  );
+  await settings.saveVolcUrl(volcUrlInput.value.trim() || DEFAULT_VOLC_URL);
   flashSaved();
 }
 
@@ -44,8 +72,19 @@ function flashSaved() {
 <template>
   <div class="settings">
     <section>
-      <h2>API Key</h2>
-      <p class="hint">阶跃星辰 StepAudio 实时识别服务密钥。</p>
+      <h2>ASR 服务</h2>
+      <p class="hint">选择实时语音转写引擎，下方按选择展示对应配置。</p>
+      <div class="row">
+        <select v-model="provider" @change="saveProvider">
+          <option value="stepfun">阶跃星辰 StepAudio</option>
+          <option value="volc">火山引擎 SAUC</option>
+        </select>
+      </div>
+    </section>
+
+    <section v-if="provider === 'stepfun'">
+      <h2>阶跃星辰 API Key</h2>
+      <p class="hint">StepAudio 实时识别服务密钥。</p>
       <div class="row">
         <input
           v-model="apiKeyInput"
@@ -55,6 +94,35 @@ function flashSaved() {
         />
         <button @click="saveApiKey">保存</button>
       </div>
+    </section>
+
+    <section v-else>
+      <h2>火山引擎配置</h2>
+      <p class="hint">SAUC 流式 ASR 服务密钥与模型资源。</p>
+      <label class="field">
+        <span>API Key</span>
+        <input
+          v-model="volcApiKeyInput"
+          type="password"
+          placeholder="火山引擎 API Key"
+          class="input"
+        />
+      </label>
+      <label class="field">
+        <span>模型 / Resource ID</span>
+        <input v-model="volcResourceIdInput" class="input" />
+      </label>
+      <div class="row">
+        <button @click="saveVolcConfig">保存</button>
+        <button class="secondary" @click="showAdvanced = !showAdvanced">
+          {{ showAdvanced ? "收起高级" : "高级" }}
+        </button>
+        <span v-if="saved" class="saved">已保存</span>
+      </div>
+      <label v-if="showAdvanced" class="field">
+        <span>WebSocket URL</span>
+        <input v-model="volcUrlInput" class="input" />
+      </label>
     </section>
 
     <section>
@@ -94,7 +162,6 @@ function flashSaved() {
       <div class="row">
         <button @click="saveAppearance">应用</button>
         <button class="secondary" @click="resetAppearance">重置为默认</button>
-        <span v-if="saved" class="saved">已保存</span>
       </div>
     </section>
   </div>
@@ -122,6 +189,13 @@ label {
   flex-direction: column;
   font-size: 13px;
   gap: 4px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 4px;
+  margin-top: 12px;
 }
 input, select {
   padding: 6px 10px;

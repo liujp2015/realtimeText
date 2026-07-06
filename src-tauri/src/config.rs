@@ -27,11 +27,47 @@ pub struct WindowRect {
     pub height: u32,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AsrProvider {
+    Stepfun,
+    Volc,
+}
+
+impl Default for AsrProvider {
+    fn default() -> Self {
+        Self::Stepfun
+    }
+}
+
+pub const DEFAULT_VOLC_URL: &str =
+    "wss://openspeech.bytedance.com/api/v3/plan/sauc/bigmodel_async";
+pub const DEFAULT_VOLC_RESOURCE_ID: &str = "volc.seedasr.sauc.duration";
+pub const DEFAULT_VOLC_MODEL: &str = "bigmodel";
+
+#[derive(Debug, Clone)]
 pub struct AppConfig {
+    pub provider: AsrProvider,
     pub api_key: String,
     pub appearance: Appearance,
     pub window: Option<WindowRect>,
+    pub volc_api_key: String,
+    pub volc_resource_id: String,
+    pub volc_url: String,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            provider: AsrProvider::default(),
+            api_key: String::new(),
+            appearance: Appearance::default(),
+            window: None,
+            volc_api_key: String::new(),
+            volc_resource_id: DEFAULT_VOLC_RESOURCE_ID.into(),
+            volc_url: DEFAULT_VOLC_URL.into(),
+        }
+    }
 }
 
 pub fn default_window_rect() -> WindowRect {

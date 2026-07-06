@@ -8,7 +8,7 @@ pub mod logging;
 pub mod state;
 pub mod vad;
 
-use config::{AppConfig, Appearance, WindowRect};
+use config::{AppConfig, Appearance, AsrProvider, WindowRect};
 use db::repository::get_config_value;
 use state::AppState;
 use tauri::Manager;
@@ -65,23 +65,37 @@ pub fn run() {
 }
 
 async fn load_config(pool: &sqlx::SqlitePool) -> anyhow::Result<AppConfig> {
-    let api_key = match get_config_value(pool, "api_key").await? {
-        Some(s) => serde_json::from_str::<String>(&s).unwrap_or_default(),
-        None => String::new(),
-    };
-    let appearance = match get_config_value(pool, "appearance").await? {
-        Some(s) => serde_json::from_str::<Appearance>(&s).unwrap_or_default(),
-        None => Appearance::default(),
-    };
-    let window = match get_config_value(pool, "window").await? {
-        Some(s) => serde_json::from_str::<WindowRect>(&s).ok(),
-        None => None,
-    };
-    Ok(AppConfig {
-        api_key,
-        appearance,
-        window,
-    })
+    let mut cfg = AppConfig::default();
+    if let Some(s) = get_config_value(pool, "api_key").await? {
+        cfg.api_key = serde_json::from_str::<String>(&s).unwrap_or_default();
+    }
+    if let Some(s) = get_config_value(pool, "appearance").await? {
+        cfg.appearance = serde_json::from_str::<Appearance>(&s).unwrap_or_default();
+    }
+    if let Some(s) = get_config_value(pool, "window").await? {
+        if let Ok(w) = serde_json::from_str::<WindowRect>(&s) {
+            cfg.window = Some(w);
+        }
+    }
+    if let Some(s) = get_config_value(pool, "provider").await? {
+        if let Ok(p) = serde_json::from_str::<AsrProvider>(&s) {
+            cfg.provider = p;
+        }
+    }
+    if let Some(s) = get_config_value(pool, "volc_api_key").await? {
+        cfg.volc_api_key = serde_json::from_str::<String>(&s).unwrap_or_default();
+    }
+    if let Some(s) = get_config_value(pool, "volc_resource_id").await? {
+        if let Ok(v) = serde_json::from_str::<String>(&s) {
+            cfg.volc_resource_id = v;
+        }
+    }
+    if let Some(s) = get_config_value(pool, "volc_url").await? {
+        if let Ok(v) = serde_json::from_str::<String>(&s) {
+            cfg.volc_url = v;
+        }
+    }
+    Ok(cfg)
 }
 
 #[cfg(not(target_os = "android"))]
